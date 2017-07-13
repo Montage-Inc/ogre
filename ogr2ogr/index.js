@@ -99,7 +99,7 @@ Ogr2ogr.prototype.stream = function() {
   return this._run()
 }
 
-Ogr2ogr.prototype._getOrgInPath = function(cb) {
+Ogr2ogr.prototype._getOgrInPath = function(cb, done) {
   var ogr2ogr = this
   var one = util.oneCallback(cb)
 
@@ -127,7 +127,11 @@ Ogr2ogr.prototype._getOrgInPath = function(cb) {
     if (ogr2ogr._isZipIn) {
       zip.extract(fpath, function(er2, fpath2) {
         if (er2) return one(er2)
-        zip.findOgrFile(fpath2, one)
+        zip.findEachOgrFile(fpath2, (file, next) => {
+          cb(null, file, next);
+        }, er => {
+          done(er);
+        })
       })
     }
     else if (ogr2ogr._isCsvIn) {
@@ -151,9 +155,15 @@ Ogr2ogr.prototype._getOrgInPath = function(cb) {
 Ogr2ogr.prototype._run = function() {
   var ogr2ogr = this
   var ostream = new stream.PassThrough()
+  var hasContent = false;
 
-  this._getOrgInPath(function(er, ogrInPath) {
+  ostream.write('[');
+
+  this._getOgrInPath(function(er, ogrInPath, done) {
     if (er) return wrapUp(er)
+
+    if(hasContent) ostream.write(',');
+    hasContent = true;
 
     ogr2ogr._ogrInPath = ogrInPath
     var args = ['-f', ogr2ogr._format]
@@ -172,8 +182,6 @@ Ogr2ogr.prototype._run = function() {
 
     if (!ogr2ogr._isZipOut) s.stdout.pipe(ostream, {end: false})
 
-    var one = util.oneCallback(wrapUp)
-
     s.stderr.setEncoding('ascii')
     s.stderr.on('data', function(chunk) {
       errbuf += chunk
@@ -184,7 +192,7 @@ Ogr2ogr.prototype._run = function() {
     })
     s.on('close', function(code) {
       clearTimeout(killTimeout)
-      one(code ? new Error(errbuf || 'ogr2ogr failed to do the conversion') : null)
+      done(code ? new Error(errbuf || 'ogr2ogr failed to do the conversion') : null)
     })
 
     var killTimeout = setTimeout(function() {
@@ -195,9 +203,11 @@ Ogr2ogr.prototype._run = function() {
         s.kill('SIGKILL')
       }
     }, ogr2ogr._timeout)
-  })
+  }, util.oneCallback(wrapUp))
 
   function wrapUp(er) {
+    ostream.write(']');
+
     if (er) {
       ostream.emit('error', er)
       return ogr2ogr._clean()
