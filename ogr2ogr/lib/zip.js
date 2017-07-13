@@ -36,6 +36,43 @@ exports.findOgrFile = function(dpath, cb) {
   })
 }
 
+exports.findEachOgrFile = findEachOgrFile;
+function findEachOgrFile(dpath, one, done) {
+  var finder = findit(dpath)
+  var list = [];
+  var block = false;
+
+  finder.on('file', function(file, stat) {
+    if (validOgrRe.test(path.extname(file))) {
+      list.push(file);
+      next();
+    }
+  })
+  finder.on('error', function(er) {
+    done(er)
+    finder.stop() // prevent multiple callbacks, stop at first error
+  })
+  finder.on('end', function() {
+    next()
+  })
+
+  function next() {
+    if (block) return;
+
+    block = true;
+
+    if (list.length) one(list.shift(), (er) => {
+        if(er) return done(er);
+
+        block = false;
+
+        next();
+      });
+
+    else done();
+  }
+}
+
 exports.createZipStream = function(dpath) {
   var zs = archiver('zip')
 
