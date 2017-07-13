@@ -30,8 +30,7 @@
     "body-parser": "^1.9.2",
     "connect-multiparty": "^1.2.5",
     "express": "^4.10.2",
-    "jade": "^1.7.0",
-    "ogr2ogr": "^1.0.1"
+    "jade": "^1.7.0"
   },
   "devDependencies": {
     "supertest": "^0.14.0",

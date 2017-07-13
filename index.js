@@ -1,6 +1,6 @@
 var express = require('express')
 var multiparty = require('connect-multiparty')
-var ogr2ogr = require('ogr2ogr')
+var ogr2ogr = require('./ogr2ogr/')
 var fs = require('fs')
 var urlencoded = require('body-parser').urlencoded
 var http = require('https')
