@@ -27,10 +27,15 @@
   },
   "main": "./index.js",
   "dependencies": {
+    "archiver": "^1.1.0",
     "body-parser": "^1.9.2",
+    "comma-separated-values": "^3.6.0",
     "connect-multiparty": "^1.2.5",
+    "decompress-zip": "^0.3.0",
     "express": "^4.10.2",
-    "jade": "^1.7.0"
+    "findit": "^2.0.0",
+    "jade": "^1.7.0",
+    "rimraf": "^2.2.8"
   },
   "devDependencies": {
     "supertest": "^0.14.0",
