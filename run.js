@@ -1,3 +1,3 @@
 var ogre = require('./')
-ogre.createServer().listen(3002)
-console.log('Ogre listening on port 3002')
+ogre.createServer().listen(3001)
+console.log('Ogre listening on port 3001')
