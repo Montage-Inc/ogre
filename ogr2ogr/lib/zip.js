@@ -20,19 +20,14 @@ exports.extract = function(fpath, cb) {
 
 var validOgrRe = /^\.(shp|kml|tab|itf|000|rt1|gml|vrt)$/i
 exports.findOgrFile = function(dpath, cb) {
-  var finder = findit(dpath)
   var found
 
-  finder.on('file', function(file, stat) {
-    if (validOgrRe.test(path.extname(file))) found = file
-  })
-  finder.on('error', function(er) {
-    cb(er)
-    finder.stop() // prevent multiple callbacks, stop at first error
-  })
-  finder.on('end', function() {
-    if (!found) return cb(new Error('No valid files found'))
-    cb(null, found)
+  findEachOgrFile(dpath, file => {
+    if(!found) cb(null, file);
+    found = true
+  }, er => {
+    if (er) cb(er);
+    else if(!found) cb(new Error('No valid files found'))
   })
 }
 
