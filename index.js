@@ -133,7 +133,7 @@ exports.createServer = function(opts) {
       if (isOgreFailureError(er)) return res.status(400).json({errors: er.message.replace('\n\n','').split('\n')})
       if (er) return next(er)
       res.header('Content-Type', contentType)
-      res.header('Content-Disposition', 'filename=' + (req.body.outputName || 'ogre.zip'))
+      res.header('Content-Disposition', 'attachment; filename=' + (req.body.outputName || 'ogre.zip'))
       res.end(buf)
     })
   })
