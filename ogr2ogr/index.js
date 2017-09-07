@@ -104,6 +104,7 @@ Ogr2ogr.prototype._getOgrInPath = function(cb, done) {
   var one = util.oneCallback(cb)
 
   ogr2ogr._isZipOut = ogr2ogr._driver.output == 'zip'
+  ogr2ogr._isJsonOut = ogr2ogr._format == 'GeoJSON'
   ogr2ogr._ogrOutPath = ogr2ogr._isZipOut ? util.genTmpPath() : '/vsistdout/'
 
   if(ogr2ogr._isZipOut) util.mkdirSync(ogr2ogr._ogrOutPath)
@@ -163,8 +164,8 @@ Ogr2ogr.prototype._run = function() {
     if (er) return wrapUp(er)
 
     if(hasContent) ostream.write(',');
-    else if(!ogr2ogr._isZipOut) ostream.write('[');
-    if(!ogr2ogr._isZipOut) hasContent = true;
+    else if(ogr2ogr._isJsonOut) ostream.write('[');
+    if(ogr2ogr._isJsonOut) hasContent = true;
 
     ogr2ogr._ogrInPath = ogrInPath
     var args = ['-f', ogr2ogr._format]
@@ -207,7 +208,7 @@ Ogr2ogr.prototype._run = function() {
   }, util.oneCallback(wrapUp))
 
   function wrapUp(er) {
-    if(!ogr2ogr._isZipOut) ostream.write(']');
+    if(ogr2ogr._isJsonOut) ostream.write(']');
 
     if (er) {
       ostream.emit('error', er)
