@@ -18,6 +18,7 @@ var genTmpPath = exports.genTmpPath = function() {
   return path.join(tmpdir, 'ogr_' + (genInc++).toString(14))
 }
 
+exports.mkdirSync = function(dpath) { if (!fs.existsSync(dpath)) fs.mkdirSync(dpath) }
 exports.rmParentDir = function(fpath, cb) { rimraf(path.dirname(fpath), cb) }
 exports.rmDir = function(dpath, cb) { rimraf(dpath, cb) }
 exports.rmFile = function(fpath, cb) { fs.unlink(fpath, cb) }
@@ -41,19 +42,39 @@ exports.writeStream = function(ins, ext, cb) {
     })
 }
 
-exports.writeGeoJSON = function(obj, cb) {
-  var fpath = genTmpPath() + '.json'
-  fs.writeFile(fpath, JSON.stringify(obj), function(er) {
-    cb(er, fpath)
+exports.writeGeoJSON = function(obj, cb, done) {
+  var fpath = genTmpPath() + '.json';
+  var pending = 0;
+
+  if(Array.isArray(obj)) obj.forEach(function(record) {
+    var fpath = genTmpPath() + '.json';
+
+    pending ++;
+    fs.writeFile(fpath, JSON.stringify(record), function(er) {
+      cb(er, fpath, next)
+    })
+  });
+
+  else fs.writeFile(fpath, JSON.stringify(obj), function(er) {
+    cb(er, fpath, done)
   })
+
+
+  function next(er) {
+    if (er) return done(er);
+
+    pending --;
+
+    if(!pending) return done();
+  }
 }
 
 exports.oneCallback = function(cb) {
   var called = false
-  return function(er, data) {
+  return function(er, data, next) {
     if (called) return
     called = true
-    cb(er, data)
+    cb(er, data, next)
   }
 }
 

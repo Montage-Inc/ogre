@@ -103,26 +103,28 @@ Ogr2ogr.prototype._getOgrInPath = function(cb, done) {
   var ogr2ogr = this
   var one = util.oneCallback(cb)
 
+  ogr2ogr._isZipOut = ogr2ogr._driver.output == 'zip'
+  ogr2ogr._ogrOutPath = ogr2ogr._isZipOut ? util.genTmpPath() : '/vsistdout/'
+
+  if(ogr2ogr._isZipOut) util.mkdirSync(ogr2ogr._ogrOutPath)
+
   if (this._inStream) {
     util.writeStream(this._inStream, this._inDriver.output, getInFilePath)
   }
   else if (this._inGeoJSON) {
-    util.writeGeoJSON(this._inGeoJSON, getInFilePath)
+    util.writeGeoJSON(this._inGeoJSON, getInFilePath, done)
   }
   else {
-    getInFilePath(null, this._inPath)
+    getInFilePath(null, this._inPath, done)
   }
 
-  function getInFilePath(er, fpath) {
+  function getInFilePath(er, fpath, done) {
     if (er) return one(er)
 
     ogr2ogr._inPath = fpath
 
     ogr2ogr._isZipIn = /zip|kmz/.test(path.extname(fpath)) && !/^\/vsizip\//.test(fpath)
     ogr2ogr._isCsvIn = /csv/.test(path.extname(fpath))
-    ogr2ogr._isZipOut = ogr2ogr._driver.output == 'zip'
-
-    ogr2ogr._ogrOutPath = ogr2ogr._isZipOut ? util.genTmpPath() : '/vsistdout/'
 
     if (ogr2ogr._isZipIn) {
       zip.extract(fpath, function(er2, fpath2) {
@@ -143,11 +145,11 @@ Ogr2ogr.prototype._getOgrInPath = function(cb, done) {
           // no geo data so no target srs
           delete ogr2ogr._targetSrs
         }
-        one(err, vrt)
+        one(err, vrt, done)
       })
     }
     else {
-      one(null, fpath)
+      cb(null, fpath, done)
     }
   }
 }
@@ -157,13 +159,12 @@ Ogr2ogr.prototype._run = function() {
   var ostream = new stream.PassThrough()
   var hasContent = false;
 
-  ostream.write('[');
-
-  this._getOgrInPath(function(er, ogrInPath, done) {
+  this._getOgrInPath(function(er, ogrInPath, next) {
     if (er) return wrapUp(er)
 
     if(hasContent) ostream.write(',');
-    hasContent = true;
+    else if(!ogr2ogr._isZipOut) ostream.write('[');
+    if(!ogr2ogr._isZipOut) hasContent = true;
 
     ogr2ogr._ogrInPath = ogrInPath
     var args = ['-f', ogr2ogr._format]
@@ -192,7 +193,7 @@ Ogr2ogr.prototype._run = function() {
     })
     s.on('close', function(code) {
       clearTimeout(killTimeout)
-      done(code ? new Error(errbuf || 'ogr2ogr failed to do the conversion') : null)
+      next(code ? new Error(errbuf || 'ogr2ogr failed to do the conversion') : null)
     })
 
     var killTimeout = setTimeout(function() {
@@ -206,7 +207,7 @@ Ogr2ogr.prototype._run = function() {
   }, util.oneCallback(wrapUp))
 
   function wrapUp(er) {
-    ostream.write(']');
+    if(!ogr2ogr._isZipOut) ostream.write(']');
 
     if (er) {
       ostream.emit('error', er)
