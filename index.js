@@ -34,6 +34,10 @@ function safelyParseJson(json) {
   }
 }
 
+function createError(msg) {
+  return { error: true, msg }
+}
+
 exports.createServer = function(opts) {
   if (!opts) opts = {}
 
@@ -54,7 +58,7 @@ exports.createServer = function(opts) {
 
   app.post('/convert', enableCors, function(req, res, next) {
     if (!req.files.upload || !req.files.upload.name) {
-      res.status(400).json({error: true, msg: 'No file provided'})
+      res.status(400).json(createError('No file provided'))
       return
     }
 
@@ -86,7 +90,7 @@ exports.createServer = function(opts) {
       fs.unlink(req.files.upload.path)
 
       if (isOgreFailureError(er)) {
-        return res.status(400).json({errors: er.message.replace('\n\n','').split('\n')})
+        return res.status(400).json(createError(er.message.replace('\n\n','')))
       }
 
       if (er) return next(er)
@@ -99,11 +103,11 @@ exports.createServer = function(opts) {
   })
 
   app.post('/convertJson', enableCors, function(req, res, next) {
-    if (!req.body.jsonUrl && !req.body.json) return res.status(400).json({error: true, msg: 'No json provided'})
+    if (!req.body.jsonUrl && !req.body.json) return res.status(400).json(createError('No json provided'))
 
     var json = safelyParseJson(req.body.json)
 
-    if (req.body.json && !json) return res.status(400).json({error: true, msg: 'Invalid json provided'})
+    if (req.body.json && !json) return res.status(400).json(createError('Invalid json provided'))
 
     var ogr
 
@@ -129,7 +133,7 @@ exports.createServer = function(opts) {
     var format = req.body.format || 'shp'
 
     ogr.format(format).exec(function(er, buf) {
-      if (isOgreFailureError(er)) return res.status(400).json({errors: er.message.replace('\n\n','').split('\n')})
+      if (isOgreFailureError(er)) return res.status(400).json(createError(er.message.replace('\n\n','')))
       if (er) return next(er)
       res.header('Content-Type', 'application/zip')
       res.header('Content-Disposition', 'filename=' + (req.body.outputName || 'ogre.zip'))
@@ -141,7 +145,7 @@ exports.createServer = function(opts) {
   app.use(function(er, req, res, next) {
     console.error(er.stack)
     res.header('Content-Type', 'application/json')
-    res.status(500).json({error: true, msg: er.message})
+    res.status(500).json(createError(er.message))
   })
 
   return http.createServer({
