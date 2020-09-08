@@ -1,6 +1,6 @@
 {
   "name": "ogre",
-  "version": "1.2.0",
+  "version": "2.0.1",
   "description": "ogr2ogr web client",
   "keywords": [
     "ogr2ogr",
@@ -17,27 +17,29 @@
     "ogre": "./bin/ogre.js"
   },
   "scripts": {
-    "test": "tape \"test/*-test.js\"",
     "start": "node run.js",
-    "dstart": "docker run -i -t -p 3000:3000 -v `pwd`:/src -w /src wavded/ogre npm start",
-    "dtest": "docker run -t -p 3000:3000 -v `pwd`:/src -w /src wavded/ogre npm test",
-    "dbuild": "docker build --rm -t wavded/ogre .",
-    "ddev": "docker run -i -t -v `pwd`:/src -w /src wavded/ogre /bin/bash",
-    "ci-test": "npm run dbuild && npm run dtest > test.tap"
+    "test": "tape \"test/*-test.js\"",
+    "lint": "eslint --max-warnings 0 bin test *.js",
+    "fmt": "prettier --write \"**/*.{html,js,json,md}\""
   },
   "main": "./index.js",
   "dependencies": {
     "body-parser": "^1.9.2",
-    "connect-multiparty": "^1.2.5",
+    "connect-multiparty": "^2.0.0",
     "express": "^4.10.2",
-    "jade": "^1.7.0",
-    "ogr2ogr": "^1.0.1"
+    "ogr2ogr": "^2.0.0",
+    "pug": "^3.0.0"
   },
   "devDependencies": {
-    "supertest": "^0.14.0",
-    "tape": "^3.0.1"
+    "eslint": "^7.4.0",
+    "eslint-config-prettier": "^6.10.0",
+    "eslint-plugin-prettier": "^3.1.2",
+    "nyc": "^15.1.0",
+    "prettier": "^2.0.5",
+    "supertest": "^4.0.2",
+    "tape": "^5.0.1"
   },
   "engines": {
-    "node": ">= 0.10.0"
+    "node": ">=10"
   }
 }
