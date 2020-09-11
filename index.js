@@ -36,6 +36,8 @@ function createError(msg) {
   return { error: true, msg }
 }
 
+function noop() {}
+
 exports.createServer = function(opts) {
   if (!opts) opts = {}
 
