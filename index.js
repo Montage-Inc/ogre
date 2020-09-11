@@ -4,9 +4,6 @@ const ogr2ogr = require('ogr2ogr')
 const fs = require('fs')
 const urlencoded = require('body-parser').urlencoded
 const join = require('path').join
-var http = require('https')
-
-var sslPath = '/etc/letsencrypt/live/geo.montageforag.com/'
 
 function enableCors(req, res, next) {
   res.header('Access-Control-Allow-Origin', '*')
@@ -159,8 +156,5 @@ exports.createServer = function(opts) {
     res.status(500).json(createError(er.message))
   })
 
-  return http.createServer({
-    key  : fs.readFileSync(sslPath + 'privkey.pem'),
-    cert : fs.readFileSync(sslPath + 'fullchain.pem'),
-  }, app);
+  return app;
 }
