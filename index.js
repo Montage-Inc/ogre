@@ -33,12 +33,12 @@ function safelyParseJson(json) {
 }
 
 function createError(msg) {
-  return { error: true, msg }
+  return {error: true, msg}
 }
 
 function noop() {}
 
-exports.createServer = function(opts) {
+exports.createServer = function (opts) {
   if (!opts) opts = {}
 
   let app = express()
@@ -95,7 +95,7 @@ exports.createServer = function(opts) {
       fs.unlink(req.files.upload.path, noop)
 
       if (isOgreFailureError(er)) {
-        return res.status(400).json(createError(er.message.replace('\n\n','')))
+        return res.status(400).json(createError(er.message.replace('\n\n', '')))
       }
 
       if (er) return next(er)
@@ -107,7 +107,7 @@ exports.createServer = function(opts) {
     })
   })
 
-  app.post('/convertJson', enableCors, function(req, res, next) {
+  app.post('/convertJson', enableCors, function (req, res, next) {
     if (!req.body.jsonUrl && !req.body.json)
       return res.status(400).json(createError('No json provided'))
 
@@ -138,9 +138,9 @@ exports.createServer = function(opts) {
 
     let format = req.body.format || 'shp'
 
-    ogr.format(format).exec(function(er, buf) {
+    ogr.format(format).exec(function (er, buf) {
       if (isOgreFailureError(er))
-        return res.status(400).json(createError(er.message.replace('\n\n','')))
+        return res.status(400).json(createError(er.message.replace('\n\n', '')))
       if (er) return next(er)
       res.header('Content-Type', 'application/zip')
       res.header(
