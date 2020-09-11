@@ -158,5 +158,5 @@ exports.createServer = function(opts) {
     res.status(500).json(createError(er.message))
   })
 
-  return app;
+  return app
 }
