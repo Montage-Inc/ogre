@@ -42,7 +42,11 @@ exports.createServer = function(opts) {
   app.options('/convertJson', enableCors, optionsHandler('POST'))
 
   app.use(express.static(__dirname + '/public'))
-  app.get('/', function(req, res) {
+  app.get('/', enableCors, function(req, res) {
+    res.header('Access-Control-Allow-Origin', '*')
+    res.header('Access-Control-Allow-Methods', 'GET')
+    res.header('Access-Control-Allow-Headers', 'X-Requested-With')
+    res.header('Access-Control-Expose-Headers', 'Content-Disposition')
     res.render('home')
   })
 
